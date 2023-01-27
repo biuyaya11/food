@@ -1,23 +1,8 @@
 <template>
   <div>
-    <div class="tableBar">
-      <el-input v-model="input" placeholder="请输入菜品名称" style="width: 250px">
-        <i
-            slot="prefix"
-            class="el-input__icon el-icon-search"
-            style="cursor: pointer"
-            @click="init"
-        ></i>
-      </el-input>
-      <div class="tableLab">
-        <span>批量删除|</span>
-        <span>批量启售|</span>
-        <span >批量停售</span>
-        <el-button type="primary">+新建菜品</el-button>
-      </div>
-    </div>
     <el-table
-        :data="tableBox"
+        ref="multipleTable"
+        :data="tableData"
         tooltip-effect="dark"
         style="width: 100%"
         @selection-change="handleSelectionChange">
@@ -46,7 +31,7 @@
       <el-button @click="toggleSelection()">取消选择</el-button>
     </div>
 
-<!-- 表单-->
+    <!-- 表单-->
     <div>
       <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
         <el-form-item label="菜品名称" prop="name">
@@ -62,7 +47,7 @@
           <el-input v-model="ruleForm.name"></el-input>
         </el-form-item>
         <el-form-item label="口味做法配置" prop="name">
-<!--          小框里的选项-->
+          <!--          小框里的选项-->
           <el-card>
             <div>
               <el-input>口味名（3个字内）</el-input>
@@ -76,22 +61,22 @@
                 </el-option>
               </el-select>
             </div>
-             <div>
-               <!--            口味标签，输入后回车添加-->
-               <el-input>口味标签，输入后回车添加</el-input>
-               <el-tag v-for="tag in tags" :key="tag.name" closable :type="tag.type">
-                 {{tag.name}}
-               </el-tag>
-               <el-button type="danger">删除</el-button>
-               <el-tag v-for="tag in tags" :key="tag.name" closable :type="tag.type">
-                 {{tag.name}}
-               </el-tag>
-               <el-button type="danger">删除</el-button>
-             </div>
-             <el-button type="primary">添加口味</el-button>
+            <div>
+              <!--            口味标签，输入后回车添加-->
+              <el-input>口味标签，输入后回车添加</el-input>
+              <el-tag v-for="tag in tags" :key="tag.name" closable :type="tag.type">
+                {{tag.name}}
+              </el-tag>
+              <el-button type="danger">删除</el-button>
+              <el-tag v-for="tag in tags" :key="tag.name" closable :type="tag.type">
+                {{tag.name}}
+              </el-tag>
+              <el-button type="danger">删除</el-button>
+            </div>
+            <el-button type="primary">添加口味</el-button>
           </el-card>
         </el-form-item>
-<!---->
+        <!---->
         <el-form-item label="活动时间" required>
           <el-col :span="11">
             <el-form-item prop="date1">
