@@ -57,24 +57,56 @@
 </template>
 
 <script>
+import {addCategory, deleCategory, editCategory, getCategoryPage} from "@/api/category";
+
 export default {
   data() {
     return {
+      action:'',
       pageSize: 10,
       total: 0,
+      page: 1,
       tableData: [],
       state: true,
       dialogFormVisible:false,
       //新增表单分类？
       classData: {
-
+        'title':'添加菜品分类',
         'categoryId': '',
         'name': '',
         sort: ''
       },
     }
   },
+  //？？？？？？
+  computed: {},
+  created() {
+    this.init()
+  },
+  mounted() {
+  },
+  //???????
   methods: {
+    //初始化？？
+    async init () {
+      await getCategoryPage({'page': this.page, 'pageSize': this.pageSize}).then(res => {
+        if (String(res.code) === '1') {
+          this.tableData = res.data.records
+          this.total = Number(res.data.total)
+        } else {
+          this.$message.error(res.msg || '操作失败')
+        }
+      }).catch(err => {
+        this.$message.error('请求出错了：' + err)
+      })
+    },
+    //??????????页码
+    handleQuery() {
+      this.page = 1;
+      this.init();
+    },
+    //？？？？？？？？？
+    //添加
     addClass(st) {
       if (st =='class'){
         this.classData.title = '新增菜品分类'
@@ -86,14 +118,106 @@ export default {
       this.action ='add'
       this.classData.name = ''
       this.classData.sort = ''
-      this.classData.dialogVisible = true
-
+      this.dialogFormVisible = true
+    },
+    //编辑
+    edit(dat){
+      this.classData.title = '修改分类'
+      this.action = 'edit'
+      this.classData.name = dat.name
+      this.classData.sort = dat.name
+      this.classData.id = dat.id
+      this.dialogFormVisible = true
     },
     //弹出对话框操作，取消表单
     closeInfo() {
       this.dialogFormVisible = false
     },
-  //  table排序
+  //  删除
+    del(id){
+      this.$confirm('删除，是否继续？','提示', {
+        'confirmButtonText': '确定',
+            'cancelButtonText': '取消',
+            'type': 'warning'
+      }).then(()=>{
+        deleCategory(id).then(res=> {
+          if (res.code === 1) {
+            //res.data.status === 200
+            this.$message.success('成功')
+          //  这里需要修改页码！！
+            this.handleQuery()
+          } else {
+            this.$message.error(res.msg || '操作失败')
+          }
+        }).catch(err => {
+          this.$message.error('请求出错了'+ err)
+        })
+      })
+    },
+    //数据提交
+   submitForm(st) {
+      const classData = this.classData
+      const valid = (classData.name === 0 || classData.name) && (classData.sort === 0 || classData.sort)
+     if(this.action === 'add') {
+       if (valid) {
+         const reg = /^\d+$/
+         if (reg.test(classData.sort)) {
+           addCategory({
+            'name':classData.name,'type':this.type,  sort: classData.sort}).then(res => {
+              console.log(res)
+             if (res.code === 1) {
+               this.$message.success('分类添加成功')
+               if (!st) {
+                 this.dialogFormVisible = false
+               } else {
+                 this.classData.name =''
+                 this.classData.sort =''
+               }
+             //  页数
+               this.handleQuery()
+             } else {
+               this.$message.error(res.msg || '操作失败')
+             }
+           }).catch(err => {
+             this.$message.error('错误' +err)
+           })
+         } else {
+           this.$message.error('只能输入数字类型')
+         }
+       } else {
+         this.$message.error('输入分类名称或排序')
+       }
+     } else if(valid) {
+       const reg = /^\d+$/
+       if (reg.test(this.classData.sort)) {
+         editCategory({'id': this.classData.id, 'name': this.classData.name, sort: this.classData.sort}).then(res => {
+           if (res.code === 1) {
+             this.$message.success('分类修改成功！')
+             this.dialogFormVisible = false
+             this.handleQuery()
+           } else {
+             this.$message.error(res.msg || '操作失败')
+           }
+         }).catch(err => {
+           this.$message.error('请求出错了：' + err)
+         })
+       } else {
+         this.$message.error('排序只能输入数字类型')
+       }
+     }else {
+       this.$message.error('请输入分类名称或排序')
+     }
+   },
+    handleSizeChange (val) {
+      this.pageSize = val
+      this.init()
+    },
+    handleCurrentChange (val) {
+      this.page = val
+      this.init()
+    },
+
+    //  table排序
     formatter(row, column) {
       return row.sort;
     }
